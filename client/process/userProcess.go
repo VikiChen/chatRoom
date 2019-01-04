@@ -7,11 +7,77 @@ import (
 	"encoding/json"
 	"encoding/binary"
 	utils2 "chatRoom/server/utils"
+	"chatRoom/client/utils"
+	"os"
 )
 
 type UserProcess struct {
 
-} 
+}
+
+
+func (this *UserProcess) Register(userId int,userPwd string,userName string)(err error)  {
+	//1. 链接到服务器
+	conn, err := net.Dial("tcp", "localhost:8889")
+	if err != nil {
+		fmt.Println("net.Dial err=", err)
+		return
+	}
+	//延时关闭
+	defer conn.Close()
+
+	//2. 准备通过conn发送消息给服务
+	var mes message.Message
+	mes.Type = message.RegisterMesType
+	//3. 创建一个RegisterMes 结构体
+	var registerMes message.RegisterMes
+	registerMes.User.UserId = userId
+	registerMes.User.UserPwd = userPwd
+	registerMes.User.UserName = userName
+
+	//4. 将registerMes 序列化
+	data, err := json.Marshal(registerMes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+
+	// 5. 把data赋给 mes.Data字段
+	mes.Data = string(data)
+
+	// 6. 将 mes进行序列化化
+	data, err = json.Marshal(mes)
+	if err != nil {
+		fmt.Println("json.Marshal err=", err)
+		return
+	}
+	//发送消息给服务器端
+	tf :=&utils.Transfer{
+		Conn:conn,
+	}
+	err = tf.WritePkg(data)
+	if err!=nil{
+		fmt.Println("注册消息发送错误")
+	}
+
+	mes,err=tf.ReadPkg()
+	if err!=nil{
+		fmt.Println("read err=",err)
+		return
+	}
+
+	//将mes的Data部分反序列化成 RegisterResMes
+	var registerResMes message.RegisterResMes
+	err = json.Unmarshal([]byte(mes.Data), &registerResMes)
+	if registerResMes.Code == 200 {
+		fmt.Println("注册成功！请重新登录")
+		os.Exit(0)
+	} else {
+		fmt.Println(registerResMes.Error)
+		os.Exit(0)
+	}
+	return
+}
 
 //写一个函数，完成登录
 func (this *UserProcess)Login(userId int, userPwd string) (err error) {
@@ -68,7 +134,7 @@ func (this *UserProcess)Login(userId int, userPwd string) (err error) {
 		return
 	}
 
-	//fmt.Printf("客户端，发送消息的长度=%d 内容=%s", len(data), string(data))
+	fmt.Printf("客户端，发送消息的长度=%d 内容=%s", len(data), string(data))
 
 	// 发送消息本身
 	_, err = conn.Write(data)
@@ -96,13 +162,14 @@ func (this *UserProcess)Login(userId int, userPwd string) (err error) {
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
 		//启动协程 保持和服务器端的通讯，如果福服务器推送
-
+		go ProcessServerMes(conn)
 		for{
 			ShowMenu()
 		}
-	} else if loginResMes.Code == 500 {
+	} else {
 		fmt.Println(loginResMes.Error)
 	}
 
 	return
 }
+

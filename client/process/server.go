@@ -3,6 +3,8 @@ package process
 import (
 	"fmt"
 	"os"
+	"net"
+	"chatRoom/client/utils"
 )
 
 func ShowMenu()  {
@@ -26,5 +28,20 @@ func ShowMenu()  {
 		os.Exit(0)
 	default:
 		fmt.Println("你输入有误，重新输入")
+	}
+}
+//keep in touch with server
+func  ProcessServerMes(Conn net.Conn)  {
+	tf:=&utils.Transfer{
+		Conn:Conn,
+	}
+	for{
+		fmt.Println("客户端正在读取服务器端发送的消息")
+		mes, err := tf.ReadPkg()
+		if err!=nil{
+			fmt.Println("read error")
+		    return
+		}
+		fmt.Println("mes=",mes)
 	}
 }

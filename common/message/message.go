@@ -3,11 +3,12 @@ package message
 const(
 	LoginMesType ="LoginMes"
 	LoginResMesType="LoginResMes"
-	RegisterMes="RegisterMes"
+	RegisterMesType="RegisterMes"
+	RegisterResMesType="RegisterResMes"
 )
 
-type Register struct {
-	//...
+type RegisterMes struct {
+	User User
 }
 
 type Message struct {
@@ -26,4 +27,7 @@ type LoginResMes struct {
 	Error string   `json:"error"`
 }
 
-
+type RegisterResMes struct {
+	Code int    `json:"code"`// 500 existed   200 success
+	Error string   `json:"error"`
+} 

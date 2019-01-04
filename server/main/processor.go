@@ -22,7 +22,11 @@ func (this *Processor)serverProcessMes(mes *message.Message)(err error)  {
 			Conn:this.Conn,
 		}
 		err = up.ServerProcessLogin(mes)
-	case message.RegisterMes:
+	case message.RegisterMesType:
+		up :=&process2.UserProcess{
+			Conn:this.Conn,
+		}
+		err = up.ServerProcessRegister(mes)
 
 	default:
 		fmt.Println("不支持此消息类型")

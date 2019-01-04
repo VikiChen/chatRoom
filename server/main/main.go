@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net"
+	"time"
+	"chatRoom/server/model"
 )
 
 
@@ -18,7 +20,14 @@ func process(conn net.Conn) {
 	}
 }
 
+func initUserDao()  {
+	model.MyUserDao =model.NewUserDao(pool)
+}
+
+
 func main() {
+	initPool("localhost:6379",16,2,300*time.Second)
+	initUserDao()
 	fmt.Println("服务器在8889端口监听。。。")
 	listener, e := net.Listen("tcp", "0.0.0.0:8889")
 	defer listener.Close()

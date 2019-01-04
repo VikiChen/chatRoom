@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-
-	"chatRoom/client/login"
+	"chatRoom/client/process"
 )
 
 //2 param ：1.userId 2.userPwd
@@ -27,30 +26,22 @@ func main() {
 		switch key {
 		case 1:
 			fmt.Println("登陆聊天")
-			loop = false
+			fmt.Println("请输入用户id")
+			fmt.Scanf("%d\n",&userId)
+			fmt.Println("请输入用户密码")
+			fmt.Scanf("%s\n",&userPwd)
+			//complete login
+			up:=&process.UserProcess{}
+			up.Login(userId,userPwd)
 		case 2:
 			fmt.Println("注册用户")
-			loop = false
+
 		case 3:
 			fmt.Println("退出")
-			loop = false
+
 		default:
 			fmt.Println("输入有误重新输入")
 		}
 	}
 
-	if key ==1{
-		fmt.Println("请输入用户id")
-		fmt.Scanf("%d\n",&userId)
-		fmt.Println("请输入用户密码")
-		fmt.Scanf("%s\n",&userPwd)
-		login.Login(userId,userPwd)
-		//if err!=nil{
-		//	fmt.Println("登陆失败")
-		//}else {
-		//	fmt.Println("登陆成功")
-		//}
-	}else if key ==2{
-		fmt.Println("其他逻辑")
-	}
 }

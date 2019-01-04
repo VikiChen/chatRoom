@@ -1,16 +1,20 @@
-package login
+package process
+
 import (
+	"net"
 	"fmt"
+	"chatRoom/common/message"
 	"encoding/json"
 	"encoding/binary"
-	"net"
-
-	"chatRoom/common/message"
-	"chatRoom/client/utils"
+	utils2 "chatRoom/server/utils"
 )
 
+type UserProcess struct {
+
+} 
+
 //写一个函数，完成登录
-func Login(userId int, userPwd string) (err error) {
+func (this *UserProcess)Login(userId int, userPwd string) (err error) {
 
 	//下一个就要开始定协议..
 	// fmt.Printf(" userId = %d userPwd=%s\n", userId, userPwd)
@@ -77,7 +81,10 @@ func Login(userId int, userPwd string) (err error) {
 	// time.Sleep(20 * time.Second)
 	// fmt.Println("休眠了20..")
 	// 这里还需要处理服务器端返回的消息.
-	mes, err =utils.ReadPkg(conn) // mes 就是
+	tf :=&utils2.Transfer{
+		Conn:conn,
+	}
+	mes, err =tf.ReadPkg() // mes 就是
 
 	if err != nil {
 		fmt.Println("readPkg(conn) err=", err)
@@ -88,7 +95,11 @@ func Login(userId int, userPwd string) (err error) {
 	var loginResMes message.LoginResMes
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
-		fmt.Println("登录成功")
+		//启动协程 保持和服务器端的通讯，如果福服务器推送
+
+		for{
+			ShowMenu()
+		}
 	} else if loginResMes.Code == 500 {
 		fmt.Println(loginResMes.Error)
 	}

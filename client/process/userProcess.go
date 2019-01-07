@@ -161,7 +161,28 @@ func (this *UserProcess)Login(userId int, userPwd string) (err error) {
 	var loginResMes message.LoginResMes
 	err = json.Unmarshal([]byte(mes.Data), &loginResMes)
 	if loginResMes.Code == 200 {
+		//初始化 curuser
+		CurUser.Conn=conn
+		CurUser.UserId=userId
+		CurUser.UserStatus=message.UserOnline
+
 		//启动协程 保持和服务器端的通讯，如果福服务器推送
+		//显示当前在线用户
+		fmt.Println("当前在线用户如下")
+		for _,v:=range loginResMes.UserIds{
+			//如果是自己不显示
+			if v ==userId{
+				continue
+			}
+			fmt.Println("用户id",v)
+			//完成初始化
+			user:=&message.User{
+				UserId:v,
+				UserStatus:message.UserOnline,
+			}
+			onlineUsers[v]=user
+		}
+		fmt.Println("\n\n")
 		go ProcessServerMes(conn)
 		for{
 			ShowMenu()

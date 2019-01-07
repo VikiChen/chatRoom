@@ -11,6 +11,7 @@ import (
 
 type UserProcess struct {
    Conn net.Conn
+   UserId int
 }
 
 
@@ -47,6 +48,16 @@ func (this *UserProcess)ServerProcessLogin(mes *message.Message)(err error)  {
 		}
 	}else {
 		loginResMes.Code=200
+		//将登录成功的用户userId给 this
+		this.UserId=loginMes.UserId
+		userMgr.AddOnlineUser(this)
+		//通知其他用户该用户上线
+		this.NotifyOthersOnlineUser(loginMes.UserId)
+		//当前用户的id 放入loginResMes ids
+		//遍历userids
+		for id,_:=range userMgr.onlineUsers{
+			loginResMes.UserIds=append(loginResMes.UserIds,id)
+		}
 		fmt.Println(user,"登录成功")
 	}
 
@@ -71,6 +82,50 @@ func (this *UserProcess)ServerProcessLogin(mes *message.Message)(err error)  {
 	err =tf.WritePkg(data)
 	return
 }
+
+
+//编写通知推送
+func (this *UserProcess) NotifyOthersOnlineUser(userId int)  {
+	//遍历onlineUsers
+	for id,up :=range userMgr.onlineUsers{
+		//过滤自己
+		if id ==userId{
+			continue
+		}
+		up.NotifyMeOnline(userId)
+	}
+}
+
+func (this *UserProcess)NotifyMeOnline(userId int) {
+	var mes message.Message
+	mes.Type =message.NotifyUserStatusMesType
+
+	var notifyUserStatusMes message.NotifyUserStatusMes
+	notifyUserStatusMes.UserId=userId
+	notifyUserStatusMes.Status=message.UserOnline
+	data,err :=json.Marshal(notifyUserStatusMes)
+	if err!=nil{
+		fmt.Println("json.Marshal error=",err)
+		return
+	}
+	mes.Data=string(data)
+
+	data,err =json.Marshal(mes)
+	if err!=nil{
+		fmt.Println("json.Marshal error=",err)
+		return
+	}
+	tf :=&utils.Transfer{
+		Conn:this.Conn,
+	}
+	err =tf.WritePkg(data)
+	if err!=nil{
+		fmt.Println("NotifyMeOnline err=",err)
+		return
+	}
+
+}
+
 func (this *UserProcess) ServerProcessRegister(mes *message.Message) (err error) {
 	var registerMes message.RegisterMes
 	err = json.Unmarshal([]byte(mes.Data), &registerMes)

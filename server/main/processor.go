@@ -16,6 +16,7 @@ type Processor struct {
 
 func (this *Processor)serverProcessMes(mes *message.Message)(err error)  {
 
+	fmt.Println("mes=",mes)
 	switch mes.Type {
 	case message.LoginMesType:
 		up :=&process2.UserProcess{
@@ -27,7 +28,9 @@ func (this *Processor)serverProcessMes(mes *message.Message)(err error)  {
 			Conn:this.Conn,
 		}
 		err = up.ServerProcessRegister(mes)
-
+	case message.SmsMesType:
+		smsProcess :=&process2.SmsProcess{}
+		smsProcess.SendGroupMes(mes)
 	default:
 		fmt.Println("不支持此消息类型")
 	}
